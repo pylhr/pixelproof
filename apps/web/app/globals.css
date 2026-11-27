@@ -1,0 +1,77 @@
+@import "tailwindcss";
+@import "../styles/tokens.css";
+
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+/* Tailwind aliases for the tokens in styles/tokens.css. Components use these
+   names (bg-surface, text-fg-2, border-line ...) and never raw colour values. */
+@theme inline {
+  --color-app: var(--bg-app);
+  --color-surface: var(--bg-surface);
+  --color-raised: var(--bg-raised);
+  --color-line: var(--border-subtle);
+  --color-line-strong: var(--border-strong);
+  --color-fg: var(--text-primary);
+  --color-fg-2: var(--text-secondary);
+  --color-fg-3: var(--text-muted);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-fg: var(--accent-fg);
+  --color-accent-soft: color-mix(in oklab, var(--accent) 12%, transparent);
+  --color-added: var(--added);
+  --color-added-soft: color-mix(in oklab, var(--added) 14%, transparent);
+  --color-removed: var(--removed);
+  --color-removed-soft: color-mix(in oklab, var(--removed) 14%, transparent);
+  --color-modified: var(--modified);
+  --color-modified-soft: color-mix(in oklab, var(--modified) 14%, transparent);
+
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: var(--font-jetbrains-mono), ui-monospace, "Cascadia Code", Consolas, monospace;
+
+  /* Type scale: 11 / 12 / 13 (default UI) / 14 / 16 / 20 / 28 */
+  --text-micro: 0.6875rem;
+  --text-micro--line-height: 1rem;
+  --text-small: 0.75rem;
+  --text-small--line-height: 1.125rem;
+  --text-ui: 0.8125rem;
+  --text-ui--line-height: 1.25rem;
+  --text-body: 0.875rem;
+  --text-body--line-height: 1.375rem;
+  --text-title: 1rem;
+  --text-title--line-height: 1.5rem;
+  --text-heading: 1.25rem;
+  --text-heading--line-height: 1.75rem;
+  --text-display: 1.75rem;
+  --text-display--line-height: 2.25rem;
+
+  /* Radii: controls 6, panels 8, dialogs 12 */
+  --radius-control: 6px;
+  --radius-panel: 8px;
+  --radius-dialog: 12px;
+
+  /* Elevation is border-first; shadow only for floating layers. */
+  --shadow-float: 0 12px 32px -8px rgb(0 0 0 / 0.18), 0 0 0 1px var(--border-subtle);
+}
+
+@layer base {
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+  ::selection {
+    background: color-mix(in oklab, var(--accent) 25%, transparent);
+  }
+}
+
+@keyframes pp-pop {
+  from { opacity: 0; transform: translateY(4px) scale(0.985); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes pp-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .pp-pop[data-state="open"] { animation: pp-pop 140ms ease-out; }
+  .pp-fade[data-state="open"] { animation: pp-fade 140ms ease-out; }
+}

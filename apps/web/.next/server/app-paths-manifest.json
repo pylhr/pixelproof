@@ -1,0 +1,11 @@
+{
+  "/page": "app/page.js",
+  "/(shell)/overview/page": "app/(shell)/overview/page.js",
+  "/(shell)/impact/page": "app/(shell)/impact/page.js",
+  "/(shell)/code/page": "app/(shell)/code/page.js",
+  "/(shell)/timeline/page": "app/(shell)/timeline/page.js",
+  "/(shell)/visual/page": "app/(shell)/visual/page.js",
+  "/(shell)/design-system/page": "app/(shell)/design-system/page.js",
+  "/(shell)/reports/page": "app/(shell)/reports/page.js",
+  "/(shell)/settings/page": "app/(shell)/settings/page.js"
+}
