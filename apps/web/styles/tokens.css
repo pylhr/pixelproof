@@ -1,0 +1,44 @@
+/*
+ * PixelProof design tokens - single source of truth for colour.
+ * Hex values only, so scripts/check-contrast.py can validate them.
+ * Components use the Tailwind aliases defined in app/globals.css, never raw values.
+ */
+:root {
+  --bg-app: #fafaf9;
+  --bg-surface: #ffffff;
+  --bg-raised: #f4f4f2;
+  --border-subtle: #e7e6e2;
+  --border-strong: #8f8f98;
+
+  --text-primary: #16161a;
+  --text-secondary: #5e5e66;
+  --text-muted: #6b6b74;
+
+  --accent: #4f46e5;
+  --accent-hover: #4338ca;
+  --accent-fg: #ffffff;
+
+  --added: #1a7f4b;
+  --removed: #c2352d;
+  --modified: #9a6412;
+}
+
+[data-theme="dark"] {
+  --bg-app: #0b0b0d;
+  --bg-surface: #131316;
+  --bg-raised: #1a1a1e;
+  --border-subtle: #24242a;
+  --border-strong: #6e6e79;
+
+  --text-primary: #ececef;
+  --text-secondary: #9a9aa3;
+  --text-muted: #8a8a94;
+
+  --accent: #8b8fff;
+  --accent-hover: #a3a6ff;
+  --accent-fg: #0b0b0d;
+
+  --added: #4cc38a;
+  --removed: #f0706a;
+  --modified: #e5a93c;
+}
