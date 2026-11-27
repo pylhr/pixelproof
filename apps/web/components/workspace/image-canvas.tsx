@@ -2,8 +2,10 @@
 
 import { useRef, useState } from "react";
 import { ChevronsLeftRight } from "lucide-react";
-import { ErrorState } from "@/components/ui/states";
+import { EmptyState, ErrorState } from "@/components/ui/states";
 import type { ImageAsset } from "@/lib/comparison/types";
+import { artifactUrl } from "@/lib/visual-api";
+import type { VisualRegion, VisualResult } from "@/lib/visual-types";
 import type { VisualView, Zoom } from "@/lib/comparison/workspace-params";
 import { cn } from "@/lib/utils";
 
@@ -53,6 +55,68 @@ function Chip({ children, className }: { children: React.ReactNode; className?: 
   );
 }
 
+/** A decorative or derived layer (mask, heatmap) stacked on the canvas. */
+function Layer({ src, alt, className }: { src: string; alt: string; className?: string }) {
+  return (
+    // Derived images must be shown pixel-exact too.
+    // eslint-disable-next-line @next/next/no-img-element
+    <img src={src} alt={alt} draggable={false} className={cn("pointer-events-none absolute inset-0 size-full select-none", className)} />
+  );
+}
+
+/** Boxes around changed regions. Drawn in canvas pixel coordinates, so they scale with the image. */
+function RegionsOverlay({
+  regions,
+  width,
+  height,
+  selected,
+  onSelect,
+}: {
+  regions: VisualRegion[];
+  width: number;
+  height: number;
+  selected: number | null;
+  onSelect: (id: number | null) => void;
+}) {
+  return (
+    <svg viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="none" aria-hidden className="pointer-events-none absolute inset-0 size-full">
+      {regions.map((r) => {
+        const on = r.id === selected;
+        return (
+          <rect
+            key={r.id}
+            x={r.x}
+            y={r.y}
+            width={r.width}
+            height={r.height}
+            vectorEffect="non-scaling-stroke"
+            strokeWidth={on ? 3 : 1.5}
+            className={cn("pointer-events-auto cursor-pointer stroke-accent", on ? "fill-accent/20" : "fill-transparent")}
+            onClick={() => onSelect(on ? null : r.id)}
+          />
+        );
+      })}
+    </svg>
+  );
+}
+
+function HeatmapLegend({ stops }: { stops: VisualResult["heatmap_legend"] }) {
+  const gradient = `linear-gradient(to right, ${stops.map((s) => s.color).join(", ")})`;
+  return (
+    <div className="mx-auto mt-3 max-w-md" aria-label="Heatmap colour scale">
+      <div className="h-2.5 rounded-full border border-line" style={{ background: gradient }} />
+      <div className="mt-1 flex justify-between font-mono text-micro text-fg-3">
+        {stops.map((s, i) => (
+          <span key={s.delta_e}>
+            {i === stops.length - 1 ? `≥ ${s.delta_e}` : s.delta_e}
+          </span>
+        ))}
+      </div>
+      <p className="mt-1 text-center text-small text-fg-3">Colour difference (ΔE) per pixel. Grey: excluded by an ignore area. Empty: present in only one image.</p>
+    </div>
+  );
+}
+
 interface CanvasProps {
   view: VisualView;
   zoom: Zoom;
@@ -61,9 +125,14 @@ interface CanvasProps {
   /** After-image opacity for the overlay view, 0-100. */
   opacity: number;
   onLoadSize: (which: ShotId, size: LoadedSize) => void;
+  /** Real analysis, when it exists. The difference and heatmap views need it. */
+  analysis?: VisualResult;
+  showRegions: boolean;
+  selectedRegion: number | null;
+  onSelectRegion: (id: number | null) => void;
 }
 
-export function ImageCanvas({ view, zoom, before, after, opacity, onLoadSize }: CanvasProps) {
+export function ImageCanvas({ view, zoom, before, after, opacity, onLoadSize, analysis, showRegions, selectedRegion, onSelectRegion }: CanvasProps) {
   const [failed, setFailed] = useState<ShotId[]>([]);
   const onFail = (which: ShotId) => setFailed((f) => (f.includes(which) ? f : [...f, which]));
 
@@ -103,9 +172,15 @@ export function ImageCanvas({ view, zoom, before, after, opacity, onLoadSize }: 
     );
   }
 
+  const regionsLayer =
+    analysis && showRegions ? (
+      <RegionsOverlay regions={analysis.regions} width={before.width} height={before.height} selected={selectedRegion} onSelect={onSelectRegion} />
+    ) : null;
+  const layered = cn("relative overflow-hidden rounded-control border border-line", zoom === "fit" && "mx-auto");
+
   if (view === "overlay") {
     return (
-      <div className={cn("relative overflow-hidden rounded-control border border-line", zoom === "fit" && "mx-auto")} style={frame}>
+      <div className={layered} style={frame}>
         <Shot asset={before} which="before" {...shotProps} className="absolute inset-0 size-full" />
         <Shot
           asset={after}
@@ -114,13 +189,45 @@ export function ImageCanvas({ view, zoom, before, after, opacity, onLoadSize }: 
           className="absolute inset-0 size-full"
           style={{ opacity: opacity / 100 }}
         />
+        {regionsLayer}
         <Chip className="left-2">Before</Chip>
         <Chip className="right-2">After · {opacity}%</Chip>
       </div>
     );
   }
 
-  return <SliderView frame={frame} before={before} after={after} shotProps={shotProps} center={zoom === "fit"} />;
+  if (view === "difference" || view === "heatmap") {
+    if (!analysis) {
+      return (
+        <EmptyState
+          title="This view needs an analysis"
+          description="Run an analysis (or start a new comparison) to measure the differences between the two screenshots."
+        />
+      );
+    }
+    return (
+      <>
+        <div className={cn(layered, view === "heatmap" && "bg-raised")} style={frame}>
+          {view === "difference" ? (
+            <>
+              <Shot asset={after} which="after" {...shotProps} className="absolute inset-0 size-full" />
+              <Layer src={artifactUrl(analysis.artifacts.diff_mask)} alt="Changed pixels highlighted in red" />
+              <Chip className="left-2">After · changed pixels in red</Chip>
+            </>
+          ) : (
+            <>
+              <Layer src={artifactUrl(analysis.artifacts.heatmap)} alt="Heatmap of per-pixel colour difference" />
+              <Chip className="left-2">Colour difference (ΔE)</Chip>
+            </>
+          )}
+          {regionsLayer}
+        </div>
+        {view === "heatmap" && <HeatmapLegend stops={analysis.heatmap_legend} />}
+      </>
+    );
+  }
+
+  return <SliderView frame={frame} before={before} after={after} shotProps={shotProps} center={zoom === "fit"} regions={regionsLayer} />;
 }
 
 function SliderView({
@@ -129,12 +236,15 @@ function SliderView({
   after,
   shotProps,
   center,
+  regions,
 }: {
   frame: React.CSSProperties;
   before: ImageAsset;
   after: ImageAsset;
   shotProps: Pick<ShotProps, "onLoadSize" | "onFail">;
   center: boolean;
+  /** Drawn beneath the divider handle; click-through is disabled in this view. */
+  regions: React.ReactNode;
 }) {
   const [pos, setPos] = useState(50);
   const frameRef = useRef<HTMLDivElement>(null);
@@ -193,6 +303,7 @@ function SliderView({
         className="absolute inset-0 size-full"
         style={{ clipPath: `inset(0 0 0 ${pos}%)` }}
       />
+      {regions && <div className="[&_rect]:pointer-events-none">{regions}</div>}
       <Chip className="left-2">Before</Chip>
       <Chip className="right-2">After</Chip>
 

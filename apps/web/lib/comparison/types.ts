@@ -1,3 +1,5 @@
+import type { VisualResult } from "@/lib/visual-types";
+
 /**
  * Data contract for a comparison. It is shaped like what the FastAPI backend will
  * return from M2/M3, so the UI does not need to change when sample data is replaced.
@@ -56,4 +58,6 @@ export interface Comparison {
   after: VersionRef;
   screen: { name: string; before: ImageAsset; after: ImageAsset };
   files: readonly FileChange[];
+  /** Real measurements from the API. Absent until the comparison has been analysed. */
+  analysis?: VisualResult;
 }

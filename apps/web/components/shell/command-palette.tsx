@@ -36,6 +36,9 @@ export function CommandPalette() {
       run: () => router.push(m.href),
     }));
     const workspace: Command[] = [
+      { id: "ws-new", group: "Workspace", label: "New visual comparison", icon: ScanEye, run: () => router.push("/visual?new=1") },
+      { id: "ws-diff", group: "Workspace", label: "Visual: difference view", icon: ScanEye, run: () => router.push("/visual?view=difference") },
+      { id: "ws-heat", group: "Workspace", label: "Visual: heatmap view", icon: ScanEye, run: () => router.push("/visual?view=heatmap") },
       { id: "ws-slider", group: "Workspace", label: "Visual: slider view", icon: ScanEye, run: () => router.push("/visual?view=slider") },
       { id: "ws-side", group: "Workspace", label: "Visual: side-by-side view", icon: ScanEye, run: () => router.push("/visual?view=side-by-side") },
       { id: "ws-overlay", group: "Workspace", label: "Visual: overlay view", icon: ScanEye, run: () => router.push("/visual?view=overlay") },

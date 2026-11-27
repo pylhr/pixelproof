@@ -1,5 +1,9 @@
-# Runtime dependencies. Only what M0 needs; analysis libraries (Pillow, OpenCV,
-# GitPython, scikit-image, tinycss2) are added in the milestone that first uses them.
+# Runtime dependencies.
 fastapi>=0.115
 uvicorn[standard]>=0.30
 pydantic>=2.7
+python-multipart>=0.0.9   # FastAPI file uploads (M2)
+numpy>=1.26               # image arrays (M2)
+Pillow>=10.3              # safe decoding and validation of untrusted images (M2)
+opencv-python-headless>=4.10  # colour conversion, SSIM filtering, connected components (M2)
+# GitPython and tinycss2 arrive with the milestone that first uses them.

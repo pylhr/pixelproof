@@ -1,6 +1,6 @@
 /** Pure helpers for the workspace's URL state (?view=&layout=&zoom=&file=). */
 
-export const VISUAL_VIEWS = ["slider", "side-by-side", "overlay"] as const;
+export const VISUAL_VIEWS = ["slider", "side-by-side", "overlay", "difference", "heatmap"] as const;
 export type VisualView = (typeof VISUAL_VIEWS)[number];
 
 export const DIFF_LAYOUTS = ["unified", "split"] as const;
@@ -12,4 +12,9 @@ export type Zoom = (typeof ZOOMS)[number];
 /** Return `raw` if it is one of `allowed`, otherwise the fallback. URL input is untrusted. */
 export function pick<T extends string>(raw: string | null, allowed: readonly T[], fallback: T): T {
   return allowed.find((a) => a === raw) ?? fallback;
+}
+
+/** Comparison ids are 32 hex characters (see the API's storage layer). Anything else is ignored. */
+export function parseComparisonId(raw: string | null): string | null {
+  return raw !== null && /^[0-9a-f]{32}$/.test(raw) ? raw : null;
 }

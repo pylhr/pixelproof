@@ -8,6 +8,10 @@ export interface SegmentedOption<T extends string> {
   label: string;
   /** Shown as a keyboard hint in the tooltip, e.g. "1". */
   shortcut?: string;
+  /** Not selectable right now. Stays visible and focusable so the reason can be found. */
+  disabled?: boolean;
+  /** Why it is disabled; shown as a tooltip. */
+  reason?: string;
 }
 
 /** Single-select radio group rendered as a segmented control.
@@ -28,11 +32,16 @@ export function Segmented<T extends string>({
   const refs = useRef<(HTMLButtonElement | null)[]>([]);
 
   const move = (from: number, delta: number) => {
-    const next = (from + delta + options.length) % options.length;
-    const opt = options[next];
-    if (!opt) return;
-    onChange(opt.value);
-    refs.current[next]?.focus();
+    // Skip disabled options.
+    for (let step = 1; step <= options.length; step++) {
+      const next = (from + delta * step + options.length * step) % options.length;
+      const opt = options[next];
+      if (opt && !opt.disabled) {
+        onChange(opt.value);
+        refs.current[next]?.focus();
+        return;
+      }
+    }
   };
 
   return (
@@ -49,8 +58,11 @@ export function Segmented<T extends string>({
             role="radio"
             aria-checked={selected}
             tabIndex={selected ? 0 : -1}
-            title={o.shortcut ? `${o.label} (${o.shortcut})` : undefined}
-            onClick={() => onChange(o.value)}
+            aria-disabled={o.disabled || undefined}
+            title={o.disabled ? o.reason : o.shortcut ? `${o.label} (${o.shortcut})` : undefined}
+            onClick={() => {
+              if (!o.disabled) onChange(o.value);
+            }}
             onKeyDown={(e) => {
               if (e.key === "ArrowRight" || e.key === "ArrowDown") {
                 e.preventDefault();
@@ -62,7 +74,7 @@ export function Segmented<T extends string>({
             }}
             className={cn(
               "inline-flex h-6 items-center rounded-control px-2.5 text-small transition-colors duration-150",
-              selected ? "bg-accent text-accent-fg" : "text-fg-2 hover:bg-raised hover:text-fg",
+              selected ? "bg-accent text-accent-fg" : o.disabled ? "cursor-not-allowed text-fg-3" : "text-fg-2 hover:bg-raised hover:text-fg",
             )}
           >
             {o.label}

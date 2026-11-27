@@ -1,7 +1,7 @@
 # Implementation status
 
 Legend: **Implemented** (code exists) / **Verified** (actually executed, with the evidence stated) / **Planned**.
-Last updated: M0 first verification run (see below).
+Last updated: M2 written (see below).
 
 ## M0 - Foundation
 
@@ -22,30 +22,48 @@ Resolved versions: Next 15.5.29, React 19.3.1, Tailwind 4.3.5, TypeScript 5.9.3,
 | `scripts/dev.ps1` | written | **no** | Never run |
 | `scripts/test.ps1` | yes | **yes** | Runs contrast, pytest, typecheck, lint (does not run e2e) |
 
-## M1 - Workspace on sample data (written, NOT yet run)
+## M1 - Workspace on sample data (developer-reported working)
 
-All M1 code was written without the ability to install or run the web app. Only the checks listed in "Evidence so far" were performed. **Treat every row below as unverified until you run `scripts\test.ps1`, `pnpm build` and `pnpm test:e2e`.**
+The developer ran M1 on their Windows machine and reported it working ("perfect"). **No command output was pasted**, so the Verified column below records that report, not evidence I have seen. Rows I could check myself are marked separately.
 
 | Item | Implemented | Verified | Note |
 |---|---|---|---|
-| Data contract (`lib/comparison/types.ts`) | yes | typecheck: no | Shaped for the future API |
+| Data contract (`lib/comparison/types.ts`) | yes | reported ok | Shaped for the future API |
 | Fictional fixtures: PNG pair + difflib-generated hunks | yes | partly | Generators ran; PNGs inspected by eye; hunk counts self-checked in the script |
-| Three-pane workspace, responsive switcher, pane toggles | yes | **no** | Never rendered |
-| URL state (`view`, `layout`, `zoom`, `file`) with validation | yes | **no** | Wrapped in `<Suspense>` for static build |
-| Image canvas: slider, side-by-side, overlay, fit/100% | yes | **no** | Slider has pointer + keyboard + ARIA |
+| Three-pane workspace, responsive switcher, pane toggles | yes | reported ok | Not seen by me |
+| URL state (`view`, `layout`, `zoom`, `file`) with validation | yes | reported ok | Wrapped in `<Suspense>` for static build |
+| Image canvas: slider, side-by-side, overlay, fit/100% | yes | reported ok | Slider has pointer + keyboard + ARIA |
 | Diff viewer: unified + split | yes | split-row pairing: yes (node assertions) | Rendering not run; no syntax highlighting |
-| Files list: filter, status filter, listbox keys | yes | **no** | |
-| Inspector, context bar, Overview recent comparisons | yes | **no** | Metrics show "Not computed", impact shows "Unknown" |
-| Playwright `workspace.spec.ts` (17 tests) | yes | **no** | Never executed |
+| Files list: filter, status filter, listbox keys | yes | reported ok | |
+| Inspector, context bar, Overview recent comparisons | yes | reported ok | Metrics show "Not computed", impact shows "Unknown" |
+| Playwright `workspace.spec.ts` (17 tests) | yes | reported ok | Output not seen |
 
-Evidence so far: syntax-only parse of all 53 TS/TSX files (0 errors); `toSplitRows` asserted in node; fixtures generated. **No typecheck, lint, build or browser run.**
+Evidence I observed: syntax-only parse of all 53 TS/TSX files (0 errors); `toSplitRows` asserted in node; fixtures generated. Everything else is the developer's report.
 
 Not in M1 (shown as Planned in the UI): difference view, heatmap, SSIM, changed regions (M2); upload/ZIP/Git import; syntax highlighting; component impact (M6).
+
+## M2 - Visual analysis (written; backend core verified in the sandbox, everything else NOT run)
+
+| Item | Implemented | Verified | Evidence |
+|---|---|---|---|
+| Analysis core (`analysis/visual.py`): normalise, delta-E, SSIM, regions, renders | yes | **yes (sandbox)** | 14 tests pass here, including exact-rectangle regions, tolerance, noise accounting, padding, SSIM vs scikit-image, and ground truth on the Acme fixtures (nothing reported in the unchanged sidebar/header) |
+| Upload validation (`security/images.py`) | yes | **yes (sandbox)** | 8 tests: garbage, empty, GIF, truncated PNG, pixel-bomb, alpha flattening, EXIF rotation |
+| Storage (`storage/comparisons.py`) | yes | **yes (sandbox)** | 6 tests: id traversal, artifact allow-list, pruning, atomic failure |
+| Service layer (decode, analyse, store, rerun) | yes | **yes (sandbox)** | Exercised end to end on the fixtures: 20.81% changed, SSIM 0.9092, 2 regions, rerun with tolerance 10 gives 5.37% |
+| Settings + limits (`config.py`) | yes | **no** | New tests in `test_config.py` not run (need pytest) |
+| FastAPI routes + schemas + CORS POST (`api/comparisons.py`, `schemas.py`, `main.py`) | yes | **no** | 14 tests in `test_visual_api.py` written, not run: FastAPI is not installed in the sandbox |
+| Upload dialog, API client, analysis state, URL restore (`?cmp=`) | yes | **no** | Syntax-checked only |
+| Difference + heatmap views, region overlay and list, inspector metrics, re-run, export | yes | **no** | Syntax-checked only |
+| Overview: real recent comparisons, start panel | yes | **no** | |
+| Playwright: `analysis.spec.ts` (12 tests, needs API), `workspace.spec.ts` updated | yes | **no** | Never executed |
+
+Dependencies added (approved with the M2 plan): `numpy`, `Pillow`, `opencv-python-headless`, `python-multipart`. Not added: scikit-image, TanStack Query (see ADR 0004).
+
+Not built in M2: ignore-area UI (API supports it), alignment correction, progress reporting, SQLite, ZIP/Git import. A sample comparison reopened by `?cmp=` loses its "Sample data" badge and code changes (the server does not know it was the sample); its metrics are still real measurements of the fictional images.
 
 ## Open issues
 1. **First `pnpm build` of M0 failed once** with `Invariant: no direct app page entry found for /_not-found`; the re-run succeeded with no changes. Not reproduced; treated as a flaky-build note, not a blocker.
 2. **E2E cold-start timeouts (M0)**: 3 of 14 tests timed out once against `next dev`; the warm re-run passed 14/14. Playwright is now set to 2 workers and a 60 s timeout; the developer reports all tests passing since.
-3. **M1 layout unverified**: canvas width with sidebar + two panes at 1280px is the main thing to check by eye (inspector auto-collapses below 1440px).
 
 ## Known limitations / technical debt
 - M0 is not "done" until open issues 1-2 are resolved, `dev.ps1` has been run, and the UI has been looked at.

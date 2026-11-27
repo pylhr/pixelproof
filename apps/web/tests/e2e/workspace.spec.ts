@@ -66,16 +66,23 @@ test.describe("visual lens", () => {
     await expect(page.getByRole("radio", { name: "Side by side" })).toHaveAttribute("aria-checked", "true");
   });
 
-  test("analysis controls are marked planned and do nothing", async ({ page }) => {
+  test("difference and heatmap are unavailable until there is an analysis, and nothing is invented", async ({ page }) => {
     await page.goto("/visual");
-    const diff = page.getByRole("button", { name: /Difference/ });
+    const diff = page.getByRole("radio", { name: "Difference" });
     await expect(diff).toHaveAttribute("aria-disabled", "true");
     const url = page.url();
     await diff.click();
+    await page.keyboard.press("4");
     expect(page.url()).toBe(url);
     const inspector = page.getByRole("complementary", { name: "Inspector" });
-    await expect(inspector.getByText("Not computed · M2")).toHaveCount(3);
+    await expect(inspector.getByText("Not computed", { exact: true })).toHaveCount(3);
     await expect(inspector.getByText("Unknown")).toBeVisible();
+    await expect(page.getByRole("listbox", { name: "Changed regions" })).toHaveCount(0);
+  });
+
+  test("a difference view requested by URL without analysis explains itself", async ({ page }) => {
+    await page.goto("/visual?view=difference");
+    await expect(page.getByText("This view needs an analysis")).toBeVisible();
   });
 });
 

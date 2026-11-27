@@ -19,7 +19,7 @@ End-to-end tests: `cd apps/web; pnpm exec playwright install chromium; pnpm test
 
 ## Layout
 - `apps/web` - Next.js frontend (App Router, TypeScript strict, Tailwind v4)
-- `apps/api` - FastAPI backend (`pixelproof/api` routes, future `services/` and pure `analysis/`)
+- `apps/api` - FastAPI backend: `api/` routes and schemas, `services/` orchestration, pure `analysis/` (visual comparison), `security/` (untrusted image decoding), `storage/` (one folder per comparison). Endpoints under `/api/comparisons/visual`; interactive docs at http://127.0.0.1:8000/docs
 - `docs` - architecture, decisions (ADRs), status
 - `scripts` - Windows-friendly dev tooling; `check-contrast.py` validates design tokens; `gen-fixtures.py` / `gen-fixture-images.py` regenerate the fictional M1 sample data (`apps/web/fixtures/README.md`)
 - `examples` - reserved for demo project versions and screenshots
