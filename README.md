@@ -21,7 +21,7 @@ End-to-end tests: `cd apps/web; pnpm exec playwright install chromium; pnpm test
 - `apps/web` - Next.js frontend (App Router, TypeScript strict, Tailwind v4)
 - `apps/api` - FastAPI backend (`pixelproof/api` routes, future `services/` and pure `analysis/`)
 - `docs` - architecture, decisions (ADRs), status
-- `scripts` - Windows-friendly dev tooling; `check-contrast.py` validates design tokens
+- `scripts` - Windows-friendly dev tooling; `check-contrast.py` validates design tokens; `gen-fixtures.py` / `gen-fixture-images.py` regenerate the fictional M1 sample data (`apps/web/fixtures/README.md`)
 - `examples` - reserved for demo project versions and screenshots
 
 ## Principles

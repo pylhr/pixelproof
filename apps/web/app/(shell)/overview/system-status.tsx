@@ -47,6 +47,8 @@ export function SystemStatus() {
               <span className="text-ui text-fg">{m.label}</span>
               {m.status === "implemented" ? (
                 <Badge tone="added">Implemented · {m.milestone}</Badge>
+              ) : m.status === "preview" ? (
+                <Badge tone="neutral" className="border-dashed border-line-strong">Preview · sample data</Badge>
               ) : (
                 <Badge tone="planned">Planned · {m.milestone}</Badge>
               )}

@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import * as Dialog from "@radix-ui/react-dialog";
-import { Monitor, Moon, Palette, Search, Sun, type LucideIcon } from "lucide-react";
+import { GitCompareArrows, Monitor, Moon, Palette, ScanEye, Search, Sun, type LucideIcon } from "lucide-react";
 import { MODULES } from "@/lib/modules";
 import { useTheme } from "@/lib/theme";
 import { cn } from "@/lib/utils";
@@ -31,12 +31,20 @@ export function CommandPalette() {
       id: `nav-${m.id}`,
       group: "Navigate",
       label: m.label,
-      hint: m.status === "planned" ? `Planned · ${m.milestone}` : undefined,
+      hint: m.status === "planned" ? `Planned · ${m.milestone}` : m.status === "preview" ? "Preview · sample data" : undefined,
       icon: m.icon,
       run: () => router.push(m.href),
     }));
+    const workspace: Command[] = [
+      { id: "ws-slider", group: "Workspace", label: "Visual: slider view", icon: ScanEye, run: () => router.push("/visual?view=slider") },
+      { id: "ws-side", group: "Workspace", label: "Visual: side-by-side view", icon: ScanEye, run: () => router.push("/visual?view=side-by-side") },
+      { id: "ws-overlay", group: "Workspace", label: "Visual: overlay view", icon: ScanEye, run: () => router.push("/visual?view=overlay") },
+      { id: "ws-unified", group: "Workspace", label: "Code: unified diff", icon: GitCompareArrows, run: () => router.push("/code?layout=unified") },
+      { id: "ws-split", group: "Workspace", label: "Code: split diff", icon: GitCompareArrows, run: () => router.push("/code?layout=split") },
+    ];
     return [
       ...nav,
+      ...workspace,
       { id: "theme-light", group: "Theme", label: "Light theme", icon: Sun, run: () => setPref("light") },
       { id: "theme-dark", group: "Theme", label: "Dark theme", icon: Moon, run: () => setPref("dark") },
       { id: "theme-system", group: "Theme", label: "System theme", icon: Monitor, run: () => setPref("system") },

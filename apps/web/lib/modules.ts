@@ -10,7 +10,8 @@ import {
 } from "lucide-react";
 
 export type ModuleId = "overview" | "visual" | "code" | "impact" | "timeline" | "reports" | "settings";
-export type ModuleStatus = "implemented" | "planned";
+/** implemented = real and verified; preview = interface built on fictional sample data only; planned = not built. */
+export type ModuleStatus = "implemented" | "preview" | "planned";
 
 export interface ModuleDef {
   id: ModuleId;
@@ -25,7 +26,7 @@ export interface ModuleDef {
 }
 
 /** Single source of truth for navigation, the command palette and status panels.
- *  Change `status` only when the module is actually implemented AND verified. */
+ *  Use `implemented` only when the module is actually implemented AND verified. */
 export const MODULES: readonly ModuleDef[] = [
   {
     id: "overview",
@@ -42,7 +43,7 @@ export const MODULES: readonly ModuleDef[] = [
     label: "Visual Evolution",
     href: "/visual",
     icon: ScanEye,
-    status: "planned",
+    status: "preview",
     milestone: "M2",
     summary: "Compare two screenshots with real, measured differences.",
     capabilities: [
@@ -57,7 +58,7 @@ export const MODULES: readonly ModuleDef[] = [
     label: "Code Evolution",
     href: "/code",
     icon: GitCompareArrows,
-    status: "planned",
+    status: "preview",
     milestone: "M3",
     summary: "Compare two project versions from ZIP archives or Git commits.",
     capabilities: [

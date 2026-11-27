@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
-import { ArrowLeftRight, GitCompareArrows } from "lucide-react";
+import { ArrowLeftRight } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { PageHeader } from "@/components/ui/page-header";
 import { Panel } from "@/components/ui/panel";
-import { EmptyState } from "@/components/ui/states";
+import { RecentComparisons } from "./recent-comparisons";
 import { SystemStatus } from "./system-status";
 
 export const metadata: Metadata = { title: "Overview" };
@@ -27,13 +27,7 @@ export default function OverviewPage() {
         </div>
       </Panel>
 
-      <Panel title="Recent comparisons" flush>
-        <EmptyState
-          icon={<GitCompareArrows className="size-5" aria-hidden />}
-          title="No comparisons yet"
-          description="Comparisons will be listed here once screenshot comparison ships in M2."
-        />
-      </Panel>
+      <RecentComparisons />
 
       <SystemStatus />
     </div>
