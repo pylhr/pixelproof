@@ -9,7 +9,7 @@ import { useTheme } from "@/lib/theme";
 import { cn } from "@/lib/utils";
 import { useShell } from "./shell-context";
 
-type Group = "Navigate" | "Theme" | "Developer";
+type Group = "Navigate" | "Workspace" | "Theme" | "Developer";
 interface Command {
   id: string;
   group: Group;

@@ -57,12 +57,22 @@ test.describe("visual lens", () => {
 
   test("number keys switch views, but not while typing", async ({ page }) => {
     await page.goto("/visual");
-    await page.keyboard.press("3");
-    await expect(page.getByRole("radio", { name: "Overlay" })).toHaveAttribute("aria-checked", "true");
-    await page.keyboard.press("2");
-    await expect(page.getByRole("radio", { name: "Side by side" })).toHaveAttribute("aria-checked", "true");
+    // The workspace renders on the client, so wait for it before sending keys. A key pressed before the
+    // shortcut listener is attached is simply lost, so the press is retried together with its assertion.
+    await expect(page.getByRole("slider", { name: "Before and after divider" })).toBeVisible();
+    await expect(async () => {
+      await page.keyboard.press("3");
+      await expect(page.getByRole("radio", { name: "Overlay" })).toHaveAttribute("aria-checked", "true", { timeout: 1000 });
+    }).toPass();
+    await expect(async () => {
+      await page.keyboard.press("2");
+      await expect(page.getByRole("radio", { name: "Side by side" })).toHaveAttribute("aria-checked", "true", { timeout: 1000 });
+    }).toPass();
     await page.keyboard.press("Control+k");
     await page.getByRole("combobox", { name: "Search commands" }).fill("1");
+    // While the palette is open the page behind it is aria-hidden, so close it before querying by role.
+    await page.keyboard.press("Escape");
+    await expect(page.getByRole("dialog")).toBeHidden();
     await expect(page.getByRole("radio", { name: "Side by side" })).toHaveAttribute("aria-checked", "true");
   });
 
@@ -70,10 +80,13 @@ test.describe("visual lens", () => {
     await page.goto("/visual");
     const diff = page.getByRole("radio", { name: "Difference" });
     await expect(diff).toHaveAttribute("aria-disabled", "true");
+    await expect(page.getByRole("slider", { name: "Before and after divider" })).toBeVisible();
     const url = page.url();
-    await diff.click();
+    await diff.click({ force: true }); // Playwright refuses to click aria-disabled controls unless forced
     await page.keyboard.press("4");
+    await page.waitForTimeout(500); // give a (wrongly) enabled shortcut time to navigate
     expect(page.url()).toBe(url);
+    await expect(diff).toHaveAttribute("aria-checked", "false");
     const inspector = page.getByRole("complementary", { name: "Inspector" });
     await expect(inspector.getByText("Not computed", { exact: true })).toHaveCount(3);
     await expect(inspector.getByText("Unknown")).toBeVisible();
@@ -126,8 +139,10 @@ test.describe("code lens", () => {
     await expect(page.getByRole("table", { name: /Side-by-side diff/ })).toBeVisible();
     await page.reload();
     await expect(page.getByRole("table", { name: /Side-by-side diff/ })).toBeVisible();
-    await page.keyboard.press("1");
-    await expect(page.getByRole("table", { name: /Unified diff/ })).toBeVisible();
+    await expect(async () => {
+      await page.keyboard.press("1");
+      await expect(page.getByRole("table", { name: /Unified diff/ })).toBeVisible({ timeout: 1000 });
+    }).toPass();
   });
 
   test("added and deleted lines are exposed to assistive tech, not colour alone", async ({ page }) => {

@@ -26,7 +26,7 @@ export default defineConfig({
       command: "pnpm dev --hostname 127.0.0.1 --port 3000",
       url: "http://127.0.0.1:3000",
       reuseExistingServer: !process.env.CI,
-      timeout: 120_000,
+      timeout: 240_000, // a cold `next dev` start on a fresh checkout took over 2 minutes on the dev machine
     },
     ...(hasApiEnv
       ? [
@@ -35,7 +35,8 @@ export default defineConfig({
             cwd: path.resolve(__dirname, "../api"),
             url: "http://127.0.0.1:8000/health",
             reuseExistingServer: !process.env.CI,
-            timeout: 60_000,
+            // The first start imports numpy/OpenCV/FastAPI, which is slow on a cold Windows disk cache.
+            timeout: 180_000,
             env: { PIXELPROOF_DATA_DIR: path.join(os.tmpdir(), "pixelproof-e2e") },
           },
         ]
